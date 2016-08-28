@@ -7,6 +7,11 @@ minimal: $(VENV)
 $(VENV): setup.py requirements.txt requirements-dev.txt
 	vendor/venv-update venv= -ppython3 venv install= -r requirements.txt -r requirements-dev.txt
 
+.PHONY: test
+test: $(VENV)
+	$(BIN)/pre-commit install -f --install-hooks
+	$(BIN)/pre-commit run --all-files
+
 .PHONY: update-requirements
 update-requirements:
 	$(eval TMP := $(shell mktemp -d))

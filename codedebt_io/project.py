@@ -1,9 +1,8 @@
-import os
 import argparse
-import pkg_resources
+import os
 from collections import namedtuple
 
-from git_code_debt import create_tables
+import pkg_resources
 from cached_property import cached_property
 
 from codedebt_io.db.connection import connect
@@ -63,7 +62,6 @@ class Project(namedtuple('Project', (
                         )
                         cursor.execute(query)
 
-
     def update(self, connection, report):
         with txn(connection) as cursor:
             if not self.db_exists(cursor):
@@ -71,7 +69,6 @@ class Project(namedtuple('Project', (
                 self.db_create(cursor)
             else:
                 report('okay')
-
 
 
 def add_project(connection, service, name):

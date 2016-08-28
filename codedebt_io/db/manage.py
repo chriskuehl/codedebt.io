@@ -9,7 +9,7 @@ from codedebt_io.db.connection import txn
 def apply_schema(connection, force=False):
     with txn(connection) as cursor:
         if force:
-            cursor.execute('DROP DATABASE IF EXISTS codedebt');
+            cursor.execute('DROP DATABASE IF EXISTS codedebt')
         cursor.execute('CREATE DATABASE codedebt')
         cursor.execute('USE codedebt')
         cursor.execute('''

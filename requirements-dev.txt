@@ -1,3 +1,4 @@
 -e .
 
 ipdb
+pre-commit
