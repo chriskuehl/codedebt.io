@@ -10,6 +10,11 @@ def apply_schema(connection, force=False):
     with txn(connection) as cursor:
         if force:
             cursor.execute('DROP DATABASE IF EXISTS codedebt')
+            cursor.execute('SHOW DATABASES')
+            for db in [row['Database'] for row in cursor]:
+                if db.startswith('proj_'):
+                    cursor.execute('DROP DATABASE {}'.format(db))
+                    print(db)
         cursor.execute('CREATE DATABASE codedebt')
         cursor.execute('USE codedebt')
         cursor.execute('''

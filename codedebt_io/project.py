@@ -1,13 +1,14 @@
 import argparse
-import os
 from collections import namedtuple
 
-import pkg_resources
 from cached_property import cached_property
 
 from codedebt_io.db.connection import connect
 from codedebt_io.db.connection import txn
 from codedebt_io.db.connection import use_db
+from codedebt_io.git_code_debt import apply_schema
+from codedebt_io.git_code_debt import load_data
+from codedebt_io.git_code_debt import populate_metric_ids
 
 
 class Project(namedtuple('Project', (
@@ -50,25 +51,20 @@ class Project(namedtuple('Project', (
         cursor.execute('''
             CREATE DATABASE {}
         '''.format(self.db_name))
+
         with use_db(cursor, self.db_name):
-            schema_dir = pkg_resources.resource_filename('git_code_debt', 'schema')
-            for schema_file in os.listdir(schema_dir):
-                with open(os.path.join(schema_dir, schema_file)) as f:
-                    for query in [q for q in f.read().split(';') if q.strip()]:
-                        # TODO: upstream
-                        query = query.replace(
-                            'INTEGER PRIMARY KEY ASC',
-                            'INTEGER PRIMARY KEY',
-                        )
-                        cursor.execute(query)
+            apply_schema(cursor)
+            populate_metric_ids(cursor)
 
     def update(self, connection, report):
         with txn(connection) as cursor:
             if not self.db_exists(cursor):
                 report('must create database')
                 self.db_create(cursor)
-            else:
-                report('okay')
+
+            report('updating data')
+            with use_db(cursor, self.db_name):
+                load_data(cursor, self)
 
 
 def add_project(connection, service, name):

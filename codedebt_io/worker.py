@@ -65,6 +65,12 @@ class Worker:
                 return
             self.report('updating: {}'.format(project))
             project.update(self.connection, self.report)
+            with txn(self.connection) as cursor:
+                cursor.execute('''
+                    UPDATE projects
+                    SET status = 'ready'
+                    WHERE id = %s
+                ''', (project.id,))
 
 
 def main(argv=None):
