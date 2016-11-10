@@ -2,6 +2,7 @@ import json
 import os
 import re
 import tempfile
+from urllib.parse import urlparse
 
 from pyquery import PyQuery as pq
 
@@ -17,6 +18,16 @@ from codedebt_io.project import get_project
 os.chdir(tempfile.mkdtemp())
 
 
+def add_prefix(url, prefix):
+    parsed = urlparse(url)
+    # TODO: how to do this better?
+    if parsed.netloc in ('', 'localhost:5000'):
+        # TODO: disgusting
+        return prefix + parsed.path + '?' + parsed.query
+    else:
+        return url
+
+
 def transform_response(resp, prefix):
     content = b''.join(resp)
     p = pq(content)
@@ -25,14 +36,14 @@ def transform_response(resp, prefix):
     if el.tag != 'html':
         yield content
     else:
-        for _el in p.find('link, a, script'):
+        for _el in p.find('link, a, script, img, div'):
             el = pq(_el)
-            for attr in ('src', 'href'):
+            for attr in ('src', 'href', 'data-ajax-url'):
                 a = el.attr(attr)
-                if a and not a.startswith(('//', 'http:', 'https:')):
-                    el.attr(attr, prefix + a)
+                if a:
+                    el.attr(attr, add_prefix(a, prefix))
 
-        yield str(p).encode('utf8')
+        yield p.html(method='html').encode('utf8')
         yield b'\n'
 
 
@@ -67,6 +78,7 @@ def app(environ, start_response):
                     ])
                     yield b'in the queue now, try refreshing'
                 else:
+                    prefix = '/github/{}/{}'.format(owner, project)
                     with txn(connection) as cursor:
                         with use_db(cursor, proj.db_name):
                             def fake_connect(*args):
@@ -77,14 +89,23 @@ def app(environ, start_response):
                             git_code_debt.server.app.sqlite3.connect = fake_connect
 
                             def _start_response(status, headers):
-                                start_response(status, [
-                                    (header, value) for (header, value) in headers
-                                    if header.lower() != 'content-length'
-                                ])
+                                new_headers = []
+                                for header, value in headers:
+                                    header = header.lower()
+                                    if header == 'location':
+                                        value = add_prefix(value, prefix)
+                                    elif header == 'content-length':
+                                        # Flask adds this header, but we might manipulate the content later.
+                                        # It's fine to remove (the WSGI server will probably add it back?)
+                                        continue
+
+                                    new_headers.append((header, value))
+
+                                start_response(status, new_headers)
 
                             yield from transform_response(
                                 git_code_debt.server.app.app(environ, _start_response),
-                                '/github/{}/{}'.format(owner, project),
+                                prefix,
                             )
             else:
                 add_project(connection, service, name)

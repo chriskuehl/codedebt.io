@@ -64,16 +64,20 @@ class FakeSqlite:
         self._cursor.connection.cursorclass = old_cursor_class
         return self
 
-    def execute(self, query, *args, **kwargs):
+    def _fix_query(self, query):
+        if query == "INSERT INTO metric_names ('name') VALUES (?)":
+            query = 'INSERT INTO metric_names (name) VALUES (?)'
         query = query.replace('?', '%s')
+        query = query.replace(' == ', ' = ')
+        return query
+
+    def execute(self, query, *args, **kwargs):
+        query = self._fix_query(query)
         self.cursor.execute(query, *args, **kwargs)
         return self.cursor
 
     def executemany(self, query, data):
-        if query == "INSERT INTO metric_names ('name') VALUES (?)":
-            query = 'INSERT INTO metric_names (name) VALUES (?)'
-        query = query.replace('?', '%s')
-
+        query = self._fix_query(query)
         self.cursor.executemany(query, data)
         return self.cursor
 
@@ -100,15 +104,18 @@ def apply_schema(cursor):
                     'INTEGER PRIMARY KEY AUTO_INCREMENT',
                 )
                 cursor.execute(query)
+
     # TODO: probably need to add a unique index back?
-    cursor.execute('''
-        ALTER TABLE metric_data
-        DROP PRIMARY KEY
-    ''')
-    cursor.execute('''
-        ALTER TABLE metric_data
-        ADD COLUMN ROWID INT NOT NULL PRIMARY KEY AUTO_INCREMENT
-    ''')
+    for tbl in ('metric_data', 'metric_changes'):
+        print('========> {}'.format(tbl))
+        cursor.execute('''
+            ALTER TABLE {}
+            DROP PRIMARY KEY
+        '''.format(tbl))
+        cursor.execute('''
+            ALTER TABLE {}
+            ADD COLUMN ROWID INT NOT NULL PRIMARY KEY AUTO_INCREMENT
+        '''.format(tbl))
 
 
 def populate_metric_ids(cursor):
