@@ -4,5 +4,4 @@
 /playground/*/nosetsid
 /playground/*/notification-fd
 /playground/*/supervise
-/settings.cfg
 /venv
