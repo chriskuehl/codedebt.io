@@ -10,6 +10,45 @@ from git_code_debt import create_tables
 from git_code_debt import generate
 
 
+METRIC_CONFIG = {
+    'ColorOverrides': [],
+    'CommitLinks': {
+        'View on Github': 'https://github.com/Yelp/git-code-debt/commit/{sha}',
+    },
+    'Groups': [
+        {
+            'Cheetah': {
+                'metric_expressions': ['^.*Cheetah.*$'],
+                'metrics': ['TotalLinesOfCode_Template'],
+            },
+        },
+        {
+            'Python': {
+                'metric_expressions': ['^.*Python.*$'],
+            },
+        },
+        {
+            'CurseWords': {
+                'metric_expressions': ['^TotalCurseWords.*$'],
+            },
+        },
+        {
+            'LinesOfCode': {
+                'metric_expressions': ['^TotalLinesOfCode.*$'],
+            },
+        },
+    ],
+    'WidgetMetrics': {
+        'TotalLinesOfCode': {},
+        'TotalLinesOfCode_Css': {},
+        'TotalLinesOfCode_Javascript': {},
+        'TotalLinesOfCode_Python': {},
+        'TotalLinesOfCode_Text': {},
+        'TotalLinesOfCode_Yaml': {},
+    },
+}
+
+
 class FakeSqlite:
 
     def __init__(self, cursor):
@@ -25,8 +64,9 @@ class FakeSqlite:
         self._cursor.connection.cursorclass = old_cursor_class
         return self
 
-    def execute(self, *args, **kwargs):
-        self.cursor.execute(*args, **kwargs)
+    def execute(self, query, *args, **kwargs):
+        query = query.replace('?', '%s')
+        self.cursor.execute(query, *args, **kwargs)
         return self.cursor
 
     def executemany(self, query, data):
@@ -38,11 +78,15 @@ class FakeSqlite:
         return self.cursor
 
     def __exit__(self, *args):
+        print('EXITING')
         self.cursor.close()
         self.cursor = None
 
     def connect(self, _):
         return self
+
+    def close(self):
+        pass
 
 
 def apply_schema(cursor):

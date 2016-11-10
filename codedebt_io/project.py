@@ -15,6 +15,7 @@ class Project(namedtuple('Project', (
     'id',
     'service',
     'name',
+    'status',
 ))):
 
     @classmethod
@@ -23,6 +24,7 @@ class Project(namedtuple('Project', (
             id=row['id'],
             service=row['service'],
             name=row['name'],
+            status=row['status'],
         )
 
     @cached_property
@@ -74,6 +76,20 @@ def add_project(connection, service, name):
                 (service, name)
                 VALUES (%s, %s)
         ''', (service, name))
+
+
+def get_project(connection, service, name):
+    with txn(connection) as cursor:
+        cursor.execute('''
+            SELECT * FROM projects
+            WHERE
+                service = %s AND
+                name = %s
+        ''', (service, name))
+        job = cursor.fetchone()
+
+    if job:
+        return Project.from_row(job)
 
 
 def add_cli(argv=None):
