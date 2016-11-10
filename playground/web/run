@@ -1,3 +1,4 @@
 #!/bin/bash
 set -euo pipefail
-exec pgctl-poll-ready gunicorn -b 0.0.0.0:5000 codedebt_io.server.app:app
+export PYTHONUNBUFFERED=1
+exec pgctl-poll-ready gunicorn -w 1 -b 0.0.0.0:5000 codedebt_io.server.app:app
