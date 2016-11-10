@@ -15,7 +15,7 @@ test: $(VENV)
 .PHONY: update-requirements
 update-requirements:
 	$(eval TMP := $(shell mktemp -d))
-	python vendor/venv-update venv= $(TMP) -ppython3 install= .
+	python vendor/venv-update venv= $(TMP) -ppython3 install= -r requirements-minimal.txt
 	. $(TMP)/bin/activate && \
 		pip freeze | sort | grep -vE '^(wheel|venv-update|virtualenv|codedebt-io)==' > requirements.txt
 	rm -rf $(TMP)

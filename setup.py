@@ -7,13 +7,8 @@ setup(
     version='0.0.0',
     author='Chris Kuehl',
     author_email='ckuehl@ocf.berkeley.edu',
-    packages=find_packages(exclude='test*'),
-    include_package_data=True,
-    install_requires={
-        'cached-property',
-        'git-code-debt',
-        'pymysql',
-    },
+    # TODO: should have install_requires here
+    packages=find_packages(exclude=('test*', 'playground*')),
     classifiers={
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
