@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+    <head>
+        <title>codedebt.io</title>
+    </head>
+    <body>
+        <p>
+            <form id="search">
+                <label for="github-project">
+                    GitHub Project:
+                </label>
+                <input
+                    type="text"
+                    id="github-project"
+                    value=""
+                    autofocus="autofocus"
+                    placeholder="owner/project"
+                />
+                <input type="submit" value="Submit" />
+            </form>
+        </p>
+        <hr />
+        <p>Or try one of these:</p>
+        <ul>
+            {% for project in featured_projects %}
+                <li><a href="/github/{{project}}">{{project}}</a></li>
+            {% endfor %}
+        </ul>
+    </body>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#search').submit(function(e) {
+                var project = $('#github-project').val();
+                window.location.pathname = '/github/' + project;
+
+                e.preventDefault();
+                return false;
+            });
+        });
+    </script>
+</html>

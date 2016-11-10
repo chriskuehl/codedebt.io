@@ -4,6 +4,7 @@ import re
 import tempfile
 from urllib.parse import urlparse
 
+import jinja2
 from pyquery import PyQuery as pq
 
 from codedebt_io.db.connection import connect
@@ -15,6 +16,13 @@ from codedebt_io.project import add_project
 from codedebt_io.project import get_project
 
 
+jinja_env = jinja2.Environment(
+    autoescape=True,
+    loader=jinja2.FileSystemLoader(searchpath=os.path.abspath('codedebt_io/templates')),
+)
+
+
+# this kinda sucks
 os.chdir(tempfile.mkdtemp())
 
 
@@ -119,8 +127,26 @@ def app(environ, start_response):
             ('Content-Type', 'text/plain'),
         ])
         yield b'ok!'
+    elif environ['PATH_INFO'].rstrip('/') == '':
+        start_response('200 Ok', [
+            ('Content-Type', 'text/html'),
+        ])
+        yield jinja_env.get_template('home.html').render(
+            featured_projects=(
+                'd3/d3',
+                'docker/compose',
+                'docker/docker',
+                'facebook/react',
+                'jashkenas/underscore',
+                'neovim/neovim',
+                'nodejs/node',
+                'pre-commit/pre-commit',
+                'torvalds/linux',
+                'yelp/dumb-init',
+            ),
+        ).encode('utf8')
     else:
         start_response('404 Not Found', [
             ('Content-Type', 'text/plain'),
         ])
-        yield b'you probably want: /github/{owner}/{project}'
+        yield b'404 not found :('
