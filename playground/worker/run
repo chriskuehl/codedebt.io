@@ -1,0 +1,4 @@
+#!/bin/bash
+set -euo pipefail
+export PYTHONUNBUFFERED=1
+exec codedebt-worker

@@ -46,7 +46,7 @@ def app(environ, start_response):
                             start_response('503 Service Unavailable', [
                                 ('Content-Type', 'text/plain'),
                             ])
-                            return [b'that project is waiting to be indexed!']
+                            yield b'that project is waiting to be indexed!'
                         else:
                             with txn(connection) as cursor:
                                 with use_db(cursor, proj.db_name):
@@ -62,12 +62,17 @@ def app(environ, start_response):
                         start_response('404 Not Found', [
                             ('Content-Type', 'text/plain'),
                         ])
-                        return [b'that project does not exist yet; try refreshing']
+                        yield b'that project does not exist yet; try refreshing'
 
+            elif environ['PATH_INFO'] == '/status':
+                start_response('200 Ok', [
+                    ('Content-Type', 'text/plain'),
+                ])
+                yield b'ok!'
             else:
                 start_response('404 Not Found', [
                     ('Content-Type', 'text/plain'),
                 ])
-                return [b'you probably want: /github/{owner}/{project}']
+                yield b'you probably want: /github/{owner}/{project}'
         finally:
             os.chdir(cwd)

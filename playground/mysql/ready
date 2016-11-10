@@ -1,0 +1,3 @@
+#!/bin/bash
+set -euo pipefail
+exec mysql -uroot -h 127.0.0.1 <<< "show databases"

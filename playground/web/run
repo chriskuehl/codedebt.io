@@ -1,0 +1,3 @@
+#!/bin/bash
+set -euo pipefail
+exec pgctl-poll-ready gunicorn -b 0.0.0.0:5000 codedebt_io.server.app:app

@@ -1,4 +1,8 @@
 *.py[co]
-
-/venv
+/playground/*/.pgctl.lock
+/playground/*/log
+/playground/*/nosetsid
+/playground/*/notification-fd
+/playground/*/supervise
 /settings.cfg
+/venv

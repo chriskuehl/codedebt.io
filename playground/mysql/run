@@ -1,0 +1,3 @@
+#!/bin/bash
+set -euo pipefail
+exec pgctl-poll-ready docker run --publish=3306:3306 --rm "codedebt-${USER}-mysql"
