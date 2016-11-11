@@ -4,3 +4,4 @@ gunicorn
 jinja2
 pymysql
 pyquery
+requests

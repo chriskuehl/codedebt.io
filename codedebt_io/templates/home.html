@@ -2,36 +2,185 @@
 <html>
     <head>
         <title>codedebt.io</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic,700italic,500,500italic" rel="stylesheet">
+        <style>
+            {% set color1 = '#2F2933' %}
+            {% set color2 = '#01A2A6' %}
+            {% set color3 = '#29D9C2' %}
+            {% set color4 = '#BDF271' %}
+            {% set color5 = '#FFFFA6' %}
+
+
+            {% set color1 = '#9e8b77' %}
+            {% set color2 = '#207178' %}
+            {% set color3 = '#FF9666' %}
+            {% set color4 = '#FFE184' %}
+            {% set color5 = '#F5E9BE' %}
+
+            body {
+                background-color: #565049;
+                font-family: Roboto, Helvetica, Arial, sans-serif;
+            }
+
+            .header-holder {
+                background-color: {{color3}};
+            }
+
+            .header-holder > .container {
+                text-align: center;
+            }
+
+            .search-bar {
+                background-color: #ffe3a5;
+            }
+
+            #search {
+                margin: 20px 0;
+            }
+
+            #github-project {
+                font-size: 30px;
+                height: 50px;
+            }
+
+            .featured-projects {
+                background-color: {{color1}};
+            }
+
+            .featured-projects h4 {
+                color: #fdfdfd;
+                margin-left: 15px;
+                margin-top: 15px;
+                margin-bottom: 15px;
+            }
+
+            .footer {
+                margin: 20px 0;
+            }
+
+            .footer, .footer a {
+                color: #ddd;
+            }
+
+            .footer a {
+                text-decoration: underline;
+            }
+
+            .project {
+                display: block;
+                background-color: #fdffff;
+                padding: 8px;
+                border-radius: 3px;
+                height: 105px;
+                position: relative;
+            }
+
+            .project .stars {
+                position: absolute;
+                top: 8px;
+                right: 11px;
+                color: #333;
+            }
+
+            .project .stars .glyphicon {
+                top: 1px;
+                font-size: 13px;
+            }
+
+            .project:hover {
+                text-decoration: none;
+                background-color: #fff6e1;
+            }
+
+            .project-col {
+                margin-bottom: 20px;
+            }
+
+            .project .project-title {
+                font-size: 16px;
+                color: #333;
+                font-weight: bold;
+                margin-bottom: 3px;
+            }
+
+            .project .project-description {
+                margin-bottom: 0;
+                color: #333;
+            }
+        </style>
     </head>
     <body>
-        <p>
-            <form id="search">
-                <label for="github-project">
-                    GitHub Project:
-                </label>
-                <input
-                    type="text"
-                    id="github-project"
-                    value=""
-                    autofocus="autofocus"
-                    placeholder="owner/project"
-                />
-                <input type="submit" value="Submit" />
-            </form>
-        </p>
-        <hr />
-        <p>Or try one of these:</p>
-        <ul>
-            {% for project in featured_projects %}
-                <li><a href="/github/{{project}}">{{project}}</a></li>
-            {% endfor %}
-        </ul>
-        <hr />
-        <p style="font-size: 12px;">
-            <a href="https://github.com/chriskuehl/codedebt.io">codedebt.io on GitHub</a>
-            <br />
-            <a href="https://github.com/Yelp/git-code-debt">git-code-debt on GitHub</a>
-        </p>
+        <div class="header-holder">
+            <div class="container">
+                <h1>codedebt.io</h1>
+            </div>
+        </div>
+        <div class="search-bar">
+            <div class="container">
+                <p>
+                    <form id="search">
+                        <h4 class="text-center">
+                            <label for="github-project">
+                                Fill in your favorite GitHub project:
+                            </label>
+                        </h4>
+                        <div class="row">
+                            <div class="col-sm-6 center-block" style="float: none;">
+                                <input
+                                   class="form-control"
+                                    type="text"
+                                    id="github-project"
+                                    value=""
+                                    autofocus="autofocus"
+                                    placeholder="owner/project"
+                                />
+                            </div>
+                        </div>
+                    </form>
+                </p>
+            </div>
+        </div>
+        <div class="featured-projects">
+            <div class="container">
+                <div class="row">
+                    <h4>Or, try one of these projects:</h4>
+                </div>
+                <div class="row">
+                    {% for project in featured_projects %}
+                        <div class="col-sm-3 project-col">
+                            <a class="project" href="/github/{{project.name}}">
+                                <div class="stars hidden-sm">
+                                    <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                                    {{project.stars}}
+                                </div>
+                                <p class="project-title">{{project.name}}</p>
+                                <p class="project-description">{{project.description}}</p>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="container">
+                <p>
+                    <strong>About codedebt.io.</strong>
+                    <br />
+                    <a href="https://github.com/chriskuehl/codedebt.io">codedebt.io</a>
+                    uses Yelp's
+                    <a href="https://github.com/Yelp/git-code-debt">
+                        git-code-debt project
+                    </a>
+                    to generate graphs and statistics about public GitHub
+                    repos.
+                    <br />
+                    Both projects were created at
+                    <a href="https://www.yelp.com/engineering">Yelp hackathons</a>.
+                </p>
+            </div>
+        </div>
     </body>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>

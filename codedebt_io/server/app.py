@@ -1,12 +1,17 @@
+import concurrent.futures
+import functools
 import json
 import os
 import re
 import tempfile
+from collections import namedtuple
 from urllib.parse import urlparse
 
 import jinja2
+import requests
 from pyquery import PyQuery as pq
 
+from codedebt_io.config import config
 from codedebt_io.db.connection import connect
 from codedebt_io.db.connection import txn
 from codedebt_io.db.connection import use_db
@@ -128,25 +133,65 @@ def app(environ, start_response):
         ])
         yield b'ok!'
     elif environ['PATH_INFO'].rstrip('/') == '':
-        start_response('200 Ok', [
-            ('Content-Type', 'text/html'),
+        yield from home(environ, start_response)
+    else:
+        start_response('404 Not Found', [
+            ('Content-Type', 'text/plain'),
         ])
-        yield jinja_env.get_template('home.html').render(
-            featured_projects=(
-                'd3/d3',
-                'docker/compose',
+        yield b'404 not found :('
+
+
+class GitHubProject(namedtuple('GitHubProject', (
+    'name',
+    'stars',
+    'description',
+))):
+
+    __slots__ = ()
+
+    @classmethod
+    @functools.lru_cache(maxsize=500)
+    def from_name(cls, name):
+        if config.get('github', 'user'):
+            auth = (config.get('github', 'user'), config.get('github', 'password'))
+        elif os.environ.get('CODEDEBT_GITHUB_USER'):
+            auth = (os.environ['CODEDEBT_GITHUB_USER'], os.environ['CODEDEBT_GITHUB_PASSWORD'])
+        else:
+            auth = None
+
+        req = requests.get(
+            'https://api.github.com/repos/' + name,
+            auth=auth,
+        )
+        assert req.status_code == 200, req.status_code
+        j = req.json()
+        return cls(
+            name=name,
+            stars=j['stargazers_count'],
+            description=j['description'],
+        )
+
+
+def home(environ, start_response):
+    start_response('200 Ok', [
+        ('Content-Type', 'text/html'),
+    ])
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as ex:
+        github_projects = [
+            ex.submit(GitHubProject.from_name, project)
+            for project in (
                 'docker/docker',
                 'facebook/react',
                 'jashkenas/underscore',
                 'neovim/neovim',
                 'nodejs/node',
                 'pre-commit/pre-commit',
+                'tmux/tmux',
                 'torvalds/linux',
-                'yelp/dumb-init',
-            ),
-        ).encode('utf8')
-    else:
-        start_response('404 Not Found', [
-            ('Content-Type', 'text/plain'),
-        ])
-        yield b'404 not found :('
+            )
+        ]
+
+    yield jinja_env.get_template('home.html').render(
+        featured_projects=[future.result() for future in github_projects],
+    ).encode('utf8')

@@ -83,7 +83,6 @@ class FakeSqlite:
         return self.cursor
 
     def __exit__(self, *args):
-        print('EXITING')
         self.cursor.close()
         self.cursor = None
 
