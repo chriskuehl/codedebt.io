@@ -29,7 +29,7 @@ os.chdir(tempfile.mkdtemp())
 def add_prefix(url, prefix):
     parsed = urlparse(url)
     # TODO: how to do this better?
-    if parsed.netloc in ('', 'localhost:5000'):
+    if parsed.netloc in ('', 'localhost:5000', 'codedebt.io'):
         # TODO: disgusting
         return prefix + parsed.path + '?' + parsed.query
     else:
