@@ -20,7 +20,11 @@ COPY requirements.txt /opt/codedebt/
 
 RUN virtualenv -ppython3 /opt/codedebt/venv
 RUN /opt/codedebt/venv/bin/pip install pip==8.1.2
+RUN /opt/codedebt/venv/bin/pip install -r /opt/codedebt/requirements.txt
+
+# We install the package later, after copying the rest of the code, so that we
+# can cache the slow installs above.
 COPY codedebt_io /opt/codedebt/codedebt_io
-RUN /opt/codedebt/venv/bin/pip install -r /opt/codedebt/requirements.txt /opt/codedebt
+RUN /opt/codedebt/venv/bin/pip install /opt/codedebt
 
 WORKDIR /opt/codedebt
