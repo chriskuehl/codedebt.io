@@ -1,5 +1,6 @@
 cached-property
 git-code-debt
+gunicorn
 jinja2
 pymysql
 pyquery

@@ -1,6 +1,5 @@
 -e .
 
-gunicorn
 ipdb
 pgctl
 pre-commit
