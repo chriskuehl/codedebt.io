@@ -30,7 +30,7 @@ class Project(namedtuple('Project', (
     @cached_property
     def git_url(self):
         return {
-            'github': 'https://github.com/{self.name}.git',
+            'github': 'git://github.com/{self.name}.git',
         }[self.service].format(self=self)
 
     @cached_property
@@ -66,7 +66,14 @@ class Project(namedtuple('Project', (
 
             report('updating data')
             with use_db(cursor, self.db_name):
-                load_data(cursor, self)
+                try:
+                    load_data(cursor, self)
+                except Exception:
+                    # This might be fatal (project does not exist) or temporary
+                    # (network error). For now we just remove forever. It can
+                    # be queued again later if desired.
+                    with use_db(cursor, 'codedebt'):
+                        remove_project(connection, self.service, self.name)
 
 
 def add_project(connection, service, name):
@@ -75,6 +82,14 @@ def add_project(connection, service, name):
             INSERT INTO projects
                 (service, name)
                 VALUES (%s, %s)
+        ''', (service, name))
+
+
+def remove_project(connection, service, name):
+    with txn(connection) as cursor:
+        cursor.execute('''
+            DELETE FROM projects
+                WHERE service = %s AND name = %s
         ''', (service, name))
 
 

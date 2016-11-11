@@ -1,3 +1,4 @@
+import socket
 import sys
 import time
 import uuid
@@ -11,7 +12,10 @@ from codedebt_io.project import Project
 class Worker:
 
     def __init__(self, connection):
-        self.name = str(uuid.uuid4())
+        self.name = '{}-{}'.format(
+            socket.gethostname(),
+            str(uuid.uuid4())
+        )
         self.connection = connection
         self.report('initialized')
 
