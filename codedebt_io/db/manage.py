@@ -24,7 +24,7 @@ def apply_schema(connection, force=False):
                 name VARCHAR(255) NOT NULL,
                 status VARCHAR(255) NOT NULL DEFAULT 'new',
                 indexer VARCHAR(255),
-                indexer_time DATETIME,
+                indexer_time DATETIME DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE KEY `idx_codedebt_unique` (`service`, `name`)
             ) ENGINE=InnoDB
         ''')

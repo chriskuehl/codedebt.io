@@ -1,0 +1,31 @@
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+    <div class="content" style="padding: 50px 0;">
+        <div class="container">
+            <div class="row text-center">
+                <h3>Please wait...</h3>
+                <p><img src="https://i.fluffy.cc/4qlj17HchhPQNkg61k3CFKTmNw9BM91x.gif" /></p>
+                {% if proj.indexer %}
+                    <p>
+                        <strong>This project is currently being indexed by the worker:</strong>
+                        <br />
+                        <tt>{{proj.indexer}}</tt>
+                    </p>
+
+                    <p>
+                        This usually takes no more than 15 seconds, but for
+                        large projects it can take a long time (up to an hour,
+                        for projects like the Linux kernel).
+                    </p>
+                {% else %}
+                    <p>
+                        <strong>This project is waiting in the queue to be indexed.</strong>
+                        <br />
+                        <p>Current position in the queue: #{{position_in_queue}}.</p>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

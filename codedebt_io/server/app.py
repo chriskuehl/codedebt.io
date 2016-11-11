@@ -86,10 +86,7 @@ def app(environ, start_response):
             proj = get_project(connection, service, name)
             if proj is not None:
                 if proj.status == 'new':
-                    start_response('503 Service Unavailable', [
-                        ('Content-Type', 'text/plain'),
-                    ])
-                    yield b'in the queue now, try refreshing'
+                    yield from waiting_for_project(environ, start_response, proj, connection)
                 else:
                     prefix = '/github/{}/{}'.format(owner, project)
                     with txn(connection) as cursor:
@@ -122,10 +119,9 @@ def app(environ, start_response):
                             )
             else:
                 add_project(connection, service, name)
-                start_response('404 Not Found', [
-                    ('Content-Type', 'text/plain'),
-                ])
-                yield b'this project has been queued, try refreshing.'
+                # TODO: this might not work...
+                proj = get_project(connection, service, name)
+                yield from waiting_for_project(environ, start_response, proj, connection)
 
     elif environ['PATH_INFO'] == '/status':
         start_response('200 Ok', [
@@ -195,3 +191,15 @@ def home(environ, start_response):
     yield jinja_env.get_template('home.html').render(
         featured_projects=[future.result() for future in github_projects],
     ).encode('utf8')
+
+
+def waiting_for_project(environ, start_response, proj, connection):
+    start_response('503 Service Unavailable', [
+        ('Content-Type', 'text/html'),
+    ])
+    with connection as cursor:
+        position_in_queue = proj.position_in_queue(cursor)
+    yield jinja_env.get_template('wait.html').render({
+        'proj': proj,
+        'position_in_queue': position_in_queue,
+    }).encode('utf8')

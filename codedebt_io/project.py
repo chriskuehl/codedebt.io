@@ -16,6 +16,8 @@ class Project(namedtuple('Project', (
     'service',
     'name',
     'status',
+    'indexer',
+    'indexer_time',
 ))):
 
     @classmethod
@@ -25,6 +27,8 @@ class Project(namedtuple('Project', (
             service=row['service'],
             name=row['name'],
             status=row['status'],
+            indexer=row['indexer'],
+            indexer_time=row['indexer_time'],
         )
 
     @cached_property
@@ -36,6 +40,14 @@ class Project(namedtuple('Project', (
     @cached_property
     def db_name(self):
         return 'proj_{self.id}'.format(self=self)
+
+    def position_in_queue(self, cursor):
+        cursor.execute('''
+            SELECT COUNT(*) AS count
+            FROM projects
+            WHERE status != 'ready' AND indexer_time < %s AND indexer IS NULL
+        ''', (self.indexer_time,))
+        return cursor.fetchone()['count'] + 1
 
     def db_exists(self, cursor):
         cursor.execute('''
