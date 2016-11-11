@@ -67,6 +67,7 @@ class FakeSqlite:
     def _fix_query(self, query):
         if query == "INSERT INTO metric_names ('name') VALUES (?)":
             query = 'INSERT INTO metric_names (name) VALUES (?)'
+        query = query.replace('ROWID < (SELECT ROWID FROM metric_data WHERE sha = ?)', 'ROWID < (SELECT ROWID FROM metric_data WHERE sha = ? limit 1)')  # noqa
         query = query.replace('?', '%s')
         query = query.replace(' == ', ' = ')
         return query
